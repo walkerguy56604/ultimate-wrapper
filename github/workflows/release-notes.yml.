@@ -1,0 +1,36 @@
+name: AI-Generated Release Notes
+
+on:
+  push:
+    tags:
+      - 'v*'  # Trigger on version tags (e.g., v1.0.0)
+
+jobs:
+  generate-release-notes:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Get Recent Commits
+        id: commits
+        run: |
+          echo "::set-output name=commits::$(git log -1 --pretty=%B)"
+
+      - name: Generate Release Notes with ChatGPT
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          curl https://api.openai.com/v1/chat/completions \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer $OPENAI_API_KEY" \
+            -d '{
+              "model": "gpt-4",
+              "messages": [
+                {"role": "system", "content": "You are an expert at summarizing commits into release notes."},
+                {"role": "user", "content": "${{ steps.commits.outputs.commits }}"}
+              ]
+            }' | jq '.choices[0].message.content'
+
+      - name: Save Release Notes
+        run: echo "Release notes generated!"
