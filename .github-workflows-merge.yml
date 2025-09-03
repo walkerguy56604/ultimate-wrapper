@@ -1,0 +1,45 @@
+
+name: Ultimate Merge
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: # Allows manual trigger from GitHub UI
+
+jobs:
+  merge-repos:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout this repo
+      - name: Checkout Ultimate Wrapper
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Git
+      - name: Set up Git
+        run: |
+          git config --global user.name "Your Name"
+          git config --global user.email "you@example.com"
+
+      # Step 3: Clone other repos (replace URLs with your own)
+      - name: Clone Starter Function
+        run: git clone https://github.com/walkerguy56604/starter-function starter-function
+
+      - name: Clone CloudPad Tools
+        run: git clone https://github.com/walkerguy56604/CloudPad-Tools cloudpad-tools
+
+      # Step 4: Copy/merge files
+      - name: Merge files into Ultimate Wrapper
+        run: |
+          cp -r starter-function/* ./starter-function/
+          cp -r cloudpad-tools/* ./cloudpad-tools/
+
+      # Step 5: Commit & push merged files
+      - name: Commit & push
+        run: |
+          git add .
+          git commit -m "Auto-merge repos into Ultimate Wrapper"
+          git push origin main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
